@@ -1,0 +1,15 @@
+<configuration>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- encoders are assigned the type
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <withJansi>true</withJansi>
+    <encoder>
+      <pattern>%gray(%d{HH:mm:ss.SSS}) [%thread] %highlight(%-5level) %yellow(%logger{36}) - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="debug">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
