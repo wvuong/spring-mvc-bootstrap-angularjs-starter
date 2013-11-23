@@ -1,15 +1,18 @@
-<configuration>
+<configuration scan="true" scanPeriod="30 seconds" debug="true">
 
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <!-- encoders are assigned the type
-         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
-    <withJansi>true</withJansi>
-    <encoder>
-      <pattern>%gray(%d{HH:mm:ss.SSS}) [%thread] %highlight(%-5level) %yellow(%logger{36}) - %msg%n</pattern>
-    </encoder>
-  </appender>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <withJansi>true</withJansi>
+        <encoder>
+            <pattern>%boldWhite(%d) [%thread] %highlight(%-5level) %yellow(%logger{36}) - %msg%n</pattern>
+        </encoder>
+    </appender>
 
-  <root level="debug">
-    <appender-ref ref="STDOUT" />
-  </root>
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="com.willvuong" level="DEBUG"/>
+
+    <root level="WARN">
+        <appender-ref ref="STDOUT"/>
+    </root>
 </configuration>
