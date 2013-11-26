@@ -3,10 +3,19 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <!-- encoders are assigned the type
              ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
-        <withJansi>true</withJansi>
-        <encoder>
-            <pattern>%boldWhite(%d) [%thread] %highlight(%-5level) %yellow(%logger{36}) - %msg%n</pattern>
-        </encoder>
+        <if condition='isDefined("nocolor")'>
+            <then>
+                <encoder>
+                    <pattern>%d [%thread] %-5level %logger{36} - %msg%n</pattern>
+                </encoder>
+            </then>
+            <else>
+                <withJansi>true</withJansi>
+                <encoder>
+                    <pattern>%boldWhite(%d) [%thread] %highlight(%-5level) %yellow(%logger{36}) - %green(%X{REQUESTID}) %cyan(%X{REQUESTURI}) - %msg%n</pattern>
+                </encoder>
+            </else>
+        </if>
     </appender>
 
     <appender name="THREADLOCAL" class="com.willvuong.bootstrapper.util.ThreadLocalMemoryAppender"/>
