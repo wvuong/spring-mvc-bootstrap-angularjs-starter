@@ -9,10 +9,14 @@
         </encoder>
     </appender>
 
+    <appender name="THREADLOCAL" class="com.willvuong.bootstrapper.util.ThreadLocalMemoryAppender"/>
+
     <logger name="org.springframework" level="INFO"/>
     <logger name="com.willvuong" level="DEBUG"/>
+    <logger name="com.willvuong.bootstrapper.filter.LogbackResponseServletFilter" level="TRACE"/>
 
     <root level="WARN">
         <appender-ref ref="STDOUT"/>
+        <appender-ref ref="THREADLOCAL"/>
     </root>
 </configuration>
