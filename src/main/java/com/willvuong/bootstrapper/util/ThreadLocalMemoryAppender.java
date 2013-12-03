@@ -1,16 +1,13 @@
 package com.willvuong.bootstrapper.util;
 
-import ch.qos.logback.classic.html.HTMLLayout;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
-import ch.qos.logback.core.encoder.Encoder;
-import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -21,100 +18,108 @@ import java.util.List;
  */
 public class ThreadLocalMemoryAppender extends AppenderBase<ILoggingEvent> {
 
-    private static ThreadLocal<List<ILoggingEvent>> threadLocal = new ThreadLocal<List<ILoggingEvent>>() {
-        @Override
-        protected List<ILoggingEvent> initialValue() {
-            return Lists.newArrayList();
-        }
-    };
+    private String htmlBefore = "";
+    private String htmlAfter = "";
 
-    private static Encoder<ILoggingEvent> encoder;
-
+    // for json output
+    private boolean jsonOutput = false;
 
     @Override
     protected void append(ILoggingEvent eventObject) {
-        threadLocal.get().add(eventObject);
+        ThreadLocalHolder.appendLoggedEvent(eventObject);
     }
 
     @Override
     public void start() {
-        if (encoder == null) {
-            addInfo("encoder not configured, falling back to default HTMLLayout encoder");
-
-            HTMLLayout layout = new HTMLLayout();
-            layout.setContext(context);
-            layout.start();
-
-            LayoutWrappingEncoder<ILoggingEvent> lwe = new LayoutWrappingEncoder<>();
-            lwe.setLayout(layout);
-            lwe.setContext(context);
-            this.encoder = lwe;
-        }
-
-        encoder.start();
+        addInfo("htmlBefore=" + htmlBefore);
+        addInfo("htmlAfter=" + htmlAfter);
 
         super.start();
     }
 
     @Override
     public void stop() {
-        if (encoder != null) {
-            try {
-                encoder.close();
-                encoder.stop();
-            } catch (IOException e) {
-                addError("while closing encoder", e);
-            }
-        }
-
         super.stop();
     }
 
-    public Encoder<ILoggingEvent> getEncoder() {
-        return encoder;
+    public boolean isJsonOutput() {
+        return jsonOutput;
     }
 
-    public void setEncoder(Encoder<ILoggingEvent> e) {
-        encoder = e;
+    public void setJson(boolean jsonOutput) {
+        this.jsonOutput = jsonOutput;
     }
 
-    public static void resetBuffer() {
-        threadLocal.get().clear();
+    public String getHtmlBefore() {
+        return this.htmlBefore;
     }
 
-    public static List<ILoggingEvent> getBufferAsList() {
-        if (encoder == null) {
-            System.err.println("Trying to read ThreadLocalMemoryAppender event buffer without initializing.  Please check Logback config.");
-            return null;
+    public void setHtmlBefore(String htmlBefore) {
+        this.htmlBefore = htmlBefore;
+    }
+
+    public String getHtmlAfter() {
+        return htmlAfter;
+    }
+
+    public void setHtmlAfter(String htmlAfter) {
+        this.htmlAfter = htmlAfter;
+    }
+
+
+    public static abstract class ThreadLocalHolder {
+        private static ThreadLocal<List<ILoggingEvent>> threadLocal = new ThreadLocal<List<ILoggingEvent>>() {
+            @Override
+            protected List<ILoggingEvent> initialValue() {
+                return Lists.newArrayList();
+            }
+        };
+
+        private static ThreadLocal<ByteArrayOutputStream> output = new ThreadLocal<ByteArrayOutputStream>() {
+            @Override
+            protected ByteArrayOutputStream initialValue() {
+                return new ByteArrayOutputStream(2048);
+            }
+        };
+
+        public static List<ILoggingEvent> getLoggedEvents() {
+            return threadLocal.get();
         }
 
-        synchronized (threadLocal) {
-            return Collections.unmodifiableList(threadLocal.get());
-        }
-    }
-
-    public static String getBufferAsEncodedString() {
-        if (encoder == null) {
-            System.err.println("Trying to read ThreadLocalMemoryAppender event buffer without initializing.  Please check Logback config.");
-            return null;
+        public static void appendLoggedEvent(ILoggingEvent event) {
+            threadLocal.get().add(event);
         }
 
-        synchronized (threadLocal) {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            List<ILoggingEvent> list = threadLocal.get();
+        public static void clearLoggedEvents() {
+            threadLocal.get().clear();
+        }
 
-            try {
-                encoder.init(out);
-                for (ILoggingEvent e : list) {
-                    encoder.doEncode(e);
+        public static String getBufferAsJson(String htmlBefore, String htmlAfter) {
+            synchronized (threadLocal) {
+                ObjectMapper mapper = new ObjectMapper();
+                try {
+                    ByteArrayOutputStream out = output.get();
+                    out.reset();
+
+                    if (htmlBefore != null) {
+                        out.write(htmlBefore.getBytes());
+                    }
+
+                    out.write("<script type=\"text/javascript\">".getBytes());
+                    out.write("var logged = ".getBytes());
+                    mapper.writeValue(out, threadLocal.get());
+                    out.write(";".getBytes());
+                    out.write("</script>".getBytes());
+
+                    if (htmlAfter != null) {
+                        out.write(htmlAfter.getBytes());
+                    }
+
+                    return out.toString();
+                } catch (IOException e) {
+                    throw Throwables.propagate(e);
                 }
-                encoder.close();
             }
-            catch (IOException ex) {
-                throw Throwables.propagate(ex);
-            }
-
-            return out.toString();
         }
     }
 }

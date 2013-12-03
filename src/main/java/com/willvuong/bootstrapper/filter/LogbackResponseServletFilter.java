@@ -1,5 +1,6 @@
 package com.willvuong.bootstrapper.filter;
 
+import ch.qos.logback.classic.LoggerContext;
 import com.willvuong.bootstrapper.util.ThreadLocalMemoryAppender;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -55,14 +56,11 @@ public class LogbackResponseServletFilter extends OncePerRequestFilter {
                 StringBuilder responseBody = new StringBuilder(wrapper.toString());
                 logger.trace("responseBody before: {} bytes", responseBody.length());
 
-                String encoded = ThreadLocalMemoryAppender.getBufferAsEncodedString();
-                ThreadLocalMemoryAppender.resetBuffer();
+                String encoded = ThreadLocalMemoryAppender.ThreadLocalHolder.getBufferAsJson(null, null);
+                ThreadLocalMemoryAppender.ThreadLocalHolder.clearLoggedEvents();
                 if (encoded != null) {
-                    StringBuilder div = new StringBuilder();
-                    div.append("<div id=\"loggerDiv\"><iframe id=\"loggerIframe\" srcdoc=\"");
-                    div.append(StringEscapeUtils.escapeHtml4(encoded));
-                    div.append("\"></iframe></div>");
-                    logger.debug("iframe html: {} bytes", div.length());
+                    StringBuilder div = new StringBuilder(encoded);
+                    logger.debug("html: {} bytes", div.length());
 
                     int pos = responseBody.lastIndexOf("</body>");
                     responseBody.insert(pos, div);
