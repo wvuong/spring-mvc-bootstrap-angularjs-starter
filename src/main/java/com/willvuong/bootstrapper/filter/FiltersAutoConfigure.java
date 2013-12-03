@@ -1,5 +1,6 @@
 package com.willvuong.bootstrapper.filter;
 
+import com.opensymphony.sitemesh.webapp.SiteMeshFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.WebApplicationInitializer;
@@ -25,6 +26,10 @@ public class FiltersAutoConfigure implements WebApplicationInitializer {
 
         logger.info("autoconfiguring logbackResponseServletFilter");
         servletContext.addFilter("logbackResponseServletFilter", LogbackResponseServletFilter.class)
+                .addMappingForUrlPatterns(null, true, "/*");
+
+        logger.info("autoconfiguring site mesh filter");
+        servletContext.addFilter("siteMeshFilter", SiteMeshFilter.class)
                 .addMappingForUrlPatterns(null, true, "/*");
     }
 }

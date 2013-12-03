@@ -135,6 +135,12 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>opensymphony</groupId>
+            <artifactId>sitemesh</artifactId>
+            <version>2.4.2</version>
+        </dependency>
+
         <!-- Jackson JSON Processor -->
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
