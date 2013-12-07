@@ -1,6 +1,7 @@
 package com.willvuong.bootstrapper.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * Created with IntelliJ IDEA.
@@ -9,5 +10,7 @@ import org.springframework.context.annotation.Configuration;
  * Time: 12:34 PM
  */
 @Configuration
+@Import(MetricsConfiguration.class)
 public class AppConfiguration {
 }
+
