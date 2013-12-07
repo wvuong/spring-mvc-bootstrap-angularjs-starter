@@ -2,6 +2,10 @@ package com.willvuong.bootstrapper.mvcconfig;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
+import com.codahale.metrics.jvm.FileDescriptorRatioGauge;
+import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
+import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
+import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlet.InstrumentedFilterContextListener;
 import com.codahale.metrics.servlets.HealthCheckServlet;
@@ -14,7 +18,6 @@ import com.willvuong.bootstrapper.filter.RequestMDCServletFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.WebApplicationInitializer;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import javax.servlet.*;
@@ -33,6 +36,13 @@ public class ServletContextAutoConfigure implements WebApplicationInitializer {
 
     @Override
     public void onStartup(final ServletContext servletContext) throws ServletException {
+        // set up a metric registry instance just for jvm metrics
+        MetricRegistry jvmMetrics = new MetricRegistry();
+        jvmMetrics.register("memory", new MemoryUsageGaugeSet());
+        jvmMetrics.register("gc", new GarbageCollectorMetricSet());
+        jvmMetrics.register("threads", new ThreadStatesGaugeSet());
+        jvmMetrics.register("fileDescriptors", new FileDescriptorRatioGauge());
+
         // handle listeners
         logger.info("autoconfiguring metrics servlet listener");
         servletContext.addListener(new MetricsServlet.ContextListener() {
@@ -88,6 +98,9 @@ public class ServletContextAutoConfigure implements WebApplicationInitializer {
         logger.info("autoconfiguring thread dump servlet");
         addServletIfDoesntExist(servletContext, "threadDumpServlet", ThreadDumpServlet.class, "/diagnostics/threads");
 
+        logger.info("autoconfiguring jvm servlet");
+        addServletIfDoesntExist(servletContext, "jvmServlet", new MetricsServlet(jvmMetrics), "/diagnostics/jvm");
+
         logger.info("all autoconfiguration injected into servlet context to be initialized when context starts.");
     }
 
@@ -108,6 +121,15 @@ public class ServletContextAutoConfigure implements WebApplicationInitializer {
         ServletRegistration.Dynamic servlet = context.addServlet(name, servletClass);
         if (servlet != null) {
             servlet.addMapping(urlPatterns);
+        }
+    }
+
+    public void addServletIfDoesntExist(final ServletContext context, final String name, final HttpServlet servlet,
+                                        final String... urlPatterns) {
+
+        ServletRegistration.Dynamic servletRegistration = context.addServlet(name, servlet);
+        if (servletRegistration != null) {
+            servletRegistration.addMapping(urlPatterns);
         }
     }
 }
