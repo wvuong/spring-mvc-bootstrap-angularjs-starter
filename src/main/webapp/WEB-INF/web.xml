@@ -11,7 +11,7 @@
 
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>com.willvuong.bootstrapper.config</param-value>
+		<param-value>com.willvuong.bootstrapper.config.AppConfiguration</param-value>
 	</context-param>
 	
 	<!-- Creates the Spring Container shared by all Servlets and Filters -->
@@ -29,7 +29,7 @@
         </init-param>
 		<init-param>
 			<param-name>contextConfigLocation</param-name>
-			<param-value>com.willvuong.bootstrapper.mvcconfig</param-value>
+			<param-value>com.willvuong.bootstrapper.mvcconfig.MvcConfiguration</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 		<async-supported>true</async-supported>
