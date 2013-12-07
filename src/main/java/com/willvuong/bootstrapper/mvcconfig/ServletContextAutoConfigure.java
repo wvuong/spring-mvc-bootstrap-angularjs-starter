@@ -6,6 +6,8 @@ import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlet.InstrumentedFilterContextListener;
 import com.codahale.metrics.servlets.HealthCheckServlet;
 import com.codahale.metrics.servlets.MetricsServlet;
+import com.codahale.metrics.servlets.PingServlet;
+import com.codahale.metrics.servlets.ThreadDumpServlet;
 import com.opensymphony.sitemesh.webapp.SiteMeshFilter;
 import com.willvuong.bootstrapper.filter.LogbackResponseServletFilter;
 import com.willvuong.bootstrapper.filter.RequestMDCServletFilter;
@@ -77,8 +79,16 @@ public class ServletContextAutoConfigure implements WebApplicationInitializer {
         logger.info("autoconfiguring metric servlet");
         addServletIfDoesntExist(servletContext, "metricsServlet", MetricsServlet.class, "/diagnostics/metrics");
 
-        logger.info("autoconfiguring metric servlet");
+        logger.info("autoconfiguring health check servlet");
         addServletIfDoesntExist(servletContext, "healthCheckServlet", HealthCheckServlet.class, "/diagnostics/health");
+
+        logger.info("autoconfiguring ping servlet");
+        addServletIfDoesntExist(servletContext, "pingServlet", PingServlet.class, "/diagnostics/ping");
+
+        logger.info("autoconfiguring thread dump servlet");
+        addServletIfDoesntExist(servletContext, "threadDumpServlet", ThreadDumpServlet.class, "/diagnostics/threads");
+
+        logger.info("all autoconfiguration injected into servlet context to be initialized when context starts.");
     }
 
     public void addFilterIfDoesntExist(final ServletContext context, final String name, final Class<? extends Filter> filterClass,
