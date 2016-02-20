@@ -19,7 +19,7 @@ import java.util.List;
 public class ThreadLocalMemoryAppender extends AppenderBase<ILoggingEvent> {
 
     private String htmlBefore = "";
-    private String htmlAfter = "";
+    private String htmlAfter = ""
 
     // for json output
     private boolean jsonOutput = false;
